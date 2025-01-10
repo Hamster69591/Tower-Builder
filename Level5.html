@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Tower Builder</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        position: relative;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      #score {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        color: white;
+        background-color: #4caf50;
+        border-radius: 5px;
+        z-index: 100;
+      }
+
+      #popup {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        background-color: #f44336;
+        color: white;
+        border-radius: 5px;
+        display: none;
+        z-index: 1000;
+        font-size: 16px;
+        font-family: Arial, sans-serif;
+      }
+
+      button,
+      #Neustart {
+        position: fixed;
+        left: 50%;
+        bottom: 20px;
+        transform: translateX(-50%);
+        padding: 15px 40px;
+        font-size: 16px;
+        color: white;
+        border-radius: 5px;
+        border: none;
+        outline: none;
+        background: #010864;
+        cursor: pointer;
+        z-index: 100;
+      }
+
+      #Neustart {
+        display: none;
+      }
+
+      .glow-on-hover:before {
+        content: "";
+        background: linear-gradient(
+          45deg,
+          #ff0000,
+          #ff7300,
+          #fffb00,
+          #48ff00,
+          #00ffd5,
+          #002bff,
+          #7a00ff,
+          #ff00c8,
+          #ff0000
+        );
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        background-size: 400%;
+        z-index: -1;
+        filter: blur(5px);
+        width: calc(100% + 4px);
+        height: calc(100% + 4px);
+        animation: glowing 20s linear infinite;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+        border-radius: 10px;
+      }
+
+      .glow-on-hover:active:after {
+        background: transparent;
+      }
+
+      .glow-on-hover:hover:before {
+        opacity: 1;
+      }
+
+      .glow-on-hover:after {
+        z-index: -1;
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #010864;
+        left: 0;
+        top: 0;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="score">Punktestand: 1</div>
+    <div id="popup">Spiel vorbei! Deine Punktzahl: 0</div>
+    <button id="button" class="glow-on-hover">Block platzieren</button>
+    <button id="Neustart" class="glow-on-hover">Spiel neu starten</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      let scene, camera, renderer;
+      let blocks = [];
+      let currentBlock;
+      let direction = 1;
+      let score = 0; // Initial Score to 0
+      const blockHeight = 0.5;
+      let blockSpeed = 0.05;
+      let movementAxis = "x";
+      let isMoving = false;
+      let initialCameraY = 5;
+      let cameraTargetY = initialCameraY;
+      const cameraElevationAmount = blockHeight;
+      let smoothCameraMovement = false;
+      let hueValue = 0;
+      let topBlock;
+      let blockCount = 0; // Track the number of blocks
+
+      function onWindowResize() {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+      }
+
+      document.getElementById("button").onclick = function () {
+        placeBlock();
+      };
+
+      function initialize() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          100
+        );
+        camera.position.set(4, initialCameraY, 8);
+        camera.lookAt(0, 0, 0);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        scene.add(ambientLight);
+
+        const groundGeometry = new THREE.BoxGeometry(10, 0.1, 10);
+        const groundMaterial = new THREE.MeshLambertMaterial({
+          color: 0xaaaaaa,
+        });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.position.y = -0.1;
+        scene.add(ground);
+
+        createInitialBlock();
+
+        // Initial point score to 1
+        score = 1; // Set initial score to 1
+        updateScore();
+
+        window.addEventListener("click", handleClick);
+        window.addEventListener("touchstart", handleTouchEvent, {
+          passive: true,
+        });
+        window.addEventListener("resize", onWindowResize);
+
+        createBlock();
+
+        animate();
+      }
+
+      function handleClick(event) {
+        if (event.target === document.getElementById("Neustart")) {
+          return;
+        }
+        if (event.target === document.getElementById("button")) {
+          return;
+        }
+        placeBlock();
+      }
+
+      function handleTouchEvent(event) {
+        if (event.target === document.getElementById("Neustart")) {
+          return;
+        }
+        if (event.target === document.getElementById("button")) {
+          return;
+        }
+        placeBlock();
+      }
+
+      function createInitialBlock() {
+        const size = 3;
+        const geometry = new THREE.BoxGeometry(size, blockHeight, size);
+        const material = new THREE.MeshLambertMaterial({
+          color: getNextColor(),
+        });
+        const block = new THREE.Mesh(geometry, material);
+
+        block.position.set(0, 0, 0);
+
+        scene.add(block);
+        blocks.push(block);
+        currentBlock = block;
+        topBlock = block;
+
+        isMoving = false;
+      }
+
+      function createBlock() {
+        const lastBlock = blocks[blocks.length - 1];
+        const sizeX = lastBlock.geometry.parameters.width * lastBlock.scale.x;
+        const sizeZ = lastBlock.geometry.parameters.depth * lastBlock.scale.z;
+
+        const geometry = new THREE.BoxGeometry(sizeX, blockHeight, sizeZ);
+        const material = new THREE.MeshLambertMaterial({
+          color: getNextColor(),
+        });
+        const block = new THREE.Mesh(geometry, material);
+
+        // Randomly choose the axis for the new block
+        const axes = ["x", "z"];
+        movementAxis = axes[Math.floor(Math.random() * axes.length)];
+
+        if (movementAxis === "z") {
+          block.position.set(
+            lastBlock.position.x,
+            lastBlock.position.y + blockHeight,
+            Math.random() * 10 - 5 // Random value between -5 and +5
+          );
+        } else {
+          block.position.set(
+            Math.random() * 10 - 5, // Random value between -5 and +5
+            lastBlock.position.y + blockHeight,
+            lastBlock.position.z
+          );
+        }
+
+        scene.add(block);
+        blocks.push(block);
+        currentBlock = block;
+        topBlock = block; // Update the top block variable
+
+        blockCount++; // Increment block count
+
+        if (blockCount >= 5) {
+          // Start smooth camera movement from the 6th block
+          cameraTargetY =
+            initialCameraY + (blockCount - 5) * cameraElevationAmount;
+          smoothCameraMovement = true;
+        }
+
+        isMoving = true;
+        direction = 1;
+
+        // Set a random block speed between 0.03 and 0.1
+        blockSpeed = Math.random() * (0.1 - 0.03) + 0.09;
+      }
+
+      function getNextColor() {
+        const colorVariationStep = 0.02;
+        hueValue += colorVariationStep;
+        if (hueValue > 1) hueValue = hueValue - 1;
+
+        const newColor = new THREE.Color();
+        newColor.setHSL(hueValue, 0.8, 0.6);
+
+        return newColor;
+      }
+
+      function placeBlock() {
+        if (!isMoving) return;
+
+        const lastBlock = blocks[blocks.length - 2];
+        const currentBlockPos = currentBlock.position[movementAxis];
+        const lastBlockPos = lastBlock.position[movementAxis];
+
+        const lastBlockSize =
+          lastBlock.geometry.parameters[
+            movementAxis === "x" ? "width" : "depth"
+          ] * lastBlock.scale[movementAxis];
+        const currentBlockSize =
+          currentBlock.geometry.parameters[
+            movementAxis === "x" ? "width" : "depth"
+          ] * currentBlock.scale[movementAxis];
+
+        const lastBlockStart = lastBlockPos - lastBlockSize / 2;
+        const lastBlockEnd = lastBlockPos + lastBlockSize / 2;
+        const currentBlockStart = currentBlockPos - currentBlockSize / 2;
+        const currentBlockEnd = currentBlockPos + currentBlockSize / 2;
+
+        const overlapStart = Math.max(lastBlockStart, currentBlockStart);
+        const overlapEnd = Math.min(lastBlockEnd, currentBlockEnd);
+        const overlap = overlapEnd - overlapStart;
+
+        if (overlap > 0) {
+          const newSize = overlap;
+          const newBlockPosition = (overlapStart + overlapEnd) / 2;
+
+          // Resize the current block along the movement axis
+          currentBlock.scale[movementAxis] = newSize / lastBlockSize;
+          currentBlock.position[movementAxis] = newBlockPosition;
+
+          // Create a new block for the remaining part
+          createBlock();
+          updateScore(); // Update score after successful placement
+        } else {
+          endGame();
+        }
+      }
+
+      function showEntireTower() {
+        const box = new THREE.Box3().setFromObject(scene);
+        const size = box.getSize(new THREE.Vector3());
+
+        camera.position.set(size.x * 1.5, size.y * 1.3, size.z * 1.5);
+        camera.lookAt(box.getCenter(new THREE.Vector3()));
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+      }
+
+      function endGame() {
+        showEntireTower();
+        document.getElementById("popup").style.display = "block";
+        document.getElementById(
+          "popup"
+        ).textContent = `Spiel vorbei! Deine Punktzahl: ${score}`;
+        document.getElementById("Neustart").style.display = "block";
+        if (topBlock) {
+          topBlock.visible = !topBlock.visible;
+        }
+        window.removeEventListener("click", handleClick);
+        window.removeEventListener("touchstart", handleTouchEvent);
+        isMoving = false;
+      }
+
+      document.getElementById("Neustart").onclick = function () {
+        resetGame();
+      };
+
+      function resetGame() {
+        // Remove all blocks
+        while (blocks.length > 0) {
+          const block = blocks.pop();
+          scene.remove(block);
+          block.geometry.dispose();
+          block.material.dispose();
+        }
+
+        // Reset game and camera state
+        score = 1; // Reset Score to 1 after reset
+        document.getElementById("score").textContent = `Punktestand: ${score}`;
+
+        // Reset camera
+        camera.position.set(4, initialCameraY, 8);
+        camera.lookAt(0, 0, 0);
+        cameraTargetY = initialCameraY; // Reset camera target height
+        smoothCameraMovement = false; // Set smooth camera movement to false
+
+        // Reset movement and block parameters
+        movementAxis = "x"; // Reset movement axis
+        blockSpeed = 0.05;
+        isMoving = false;
+        blockCount = 0; // Reset block count
+
+        // Create initial block
+        createInitialBlock();
+
+        // Create first block
+        createBlock();
+
+        // Hide popup and restart button
+        document.getElementById("popup").style.display = "none";
+        document.getElementById("Neustart").style.display = "none";
+
+        // Re-add event listeners
+        window.addEventListener("click", handleClick);
+        window.addEventListener("touchstart", handleTouchEvent, {
+          passive: true,
+        });
+      }
+
+      function updateScore() {
+        // Score should be set to 1 if only the initial block is present
+        if (blocks.length > 1) {
+          score = blocks.length - 1; // Score based on the number of blocks minus 1 for the initial block
+        } else {
+          score = 1; // Set score to 1 if only the initial block is present
+        }
+        document.getElementById("score").textContent = `Punktestand: ${score}`;
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        if (isMoving) {
+          currentBlock.position[movementAxis] += blockSpeed * direction;
+
+          if (Math.abs(currentBlock.position[movementAxis]) > 5) {
+            direction *= -1;
+          }
+        }
+
+        if (smoothCameraMovement) {
+          camera.position.y += (cameraTargetY - camera.position.y) * 0.1;
+          if (Math.abs(camera.position.y - cameraTargetY) < 0.05) {
+            smoothCameraMovement = false;
+          }
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      initialize();
+    </script>
+  </body>
+</html>
