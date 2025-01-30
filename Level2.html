@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -194,6 +195,53 @@
     function handleClick(event) {
       if (event.target === document.getElementById("Neustart")) {
         return;
+        .glow-on-hover:hover:before {
+            opacity: 1;
+        }
+
+        .glow-on-hover:after {
+            z-index: -1;id           content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #010864;
+
+      id="home"        left: 0;
+            top: 0;
+            border-radius: 10px;
+        }
+    </style>
+  </head>
+
+  <body>
+    <div id="score">Score: 1</div>
+  <div id="popup">Game over! Yoouur Score: 0</div>
+  <button id="button" class="glow-on-hover">Place Block</button>
+  <button id="Neustart" class="glow-on-hover">Start a new game</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      let scene, camera, renderer;
+      let blocks = [];
+      let currentBlock;
+      let direction = 1;
+      let score = 0; // Initial Score to 0
+      const blockHeight = 0.5;
+      let blockSpeed = 0.05;
+      let movementAxis = "x";
+      let isMoving = false;
+      let initialCameraY = 5;
+      let cameraTargetY = initialCameraY;
+      const cameraElevationAmount = blockHeight;
+      let smoothCameraMovement = false;
+      let hueValue = 0;
+      let topBlock;
+      let blockCount = 0; // Track the number of blocks
+
+      function onWindowResize() {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
       }
       if (event.target === document.getElementById("button")) {
         return;
