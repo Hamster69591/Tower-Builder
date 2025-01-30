@@ -2,127 +2,549 @@
 <html lang="de">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3D Tower-Builder</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f0f0f0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      color: #333;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Tower Builder</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
 
-    .container {
-      text-align: center;
-    }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
 
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 20px;
-    }
+        #score {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #4caf50;
+            border-radius: 5px;
+            z-index: 100;
+        }
 
-    .button-container {
-      margin-top: 40px;
-    }
+        #popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+        }
 
-    .glow-on-hover {
-      margin: 20px;
-      font-size: 1.5em;
-      width: 200px;
-      height: 50px;
-      border: none;
-      outline: none;
-      color: #fff;
-      background: #111;
-      cursor: pointer;
-      position: relative;
-      z-index: 0;
-      border-radius: 10px;
-    }
+        #button,
+        #Neustart {
+            position: fixed;
+            left: 50%;
+            bottom: 20px;
+            transform: translateX(-50%);
+            padding: 15px 40px;
+            font-size: 16px;
+            color: white;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+            background: #010864;
+            cursor: pointer;
+            z-index: 100;
+        }
 
-    .glow-on-hover:before {
-      content: "";
-      background: linear-gradient(45deg,
-          #ff0000,
-          #ff7300,
-          #fffb00,
-          #48ff00,
-          #00ffd5,
-          #002bff,
-          #7a00ff,
-          #ff00c8,
-          #ff0000);
-      position: absolute;
-      top: -2px;
-      left: -2px;
-      background-size: 400%;
-      z-index: -1;
-      filter: blur(5px);
-      width: calc(100% + 4px);
-      height: calc(100% + 4px);
-      animation: glowing 20s linear infinite;
-      opacity: 0;
-      transition: opacity 0.3s ease-in-out;
-      border-radius: 10px;
-    }
+        #Neustart {
+            display: none;
+        }
 
-    .glow-on-hover:active {
-      color: #000;
-    }
+        #difficulty {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #2196F3;
+            border-radius: 5px;
+            z-index: 100;
+        }
 
-    .glow-on-hover:active:after {
-      background: transparent;
-    }
+        .glow-on-hover:before {
+            content: '';
+            background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            background-size: 400%;
+            z-index: -1;
+            filter: blur(5px);
+            width: calc(100% + 4px);
+            height: calc(100% + 4px);
+            animation: glowing 20s linear infinite;
+            opacity: 0;
+            transition: opacity .3s ease-in-out;
+            border-radius: 10px;
+        }
 
-    .glow-on-hover:hover:before {
-      opacity: 1;
-    }
+        .glow-on-hover:active {
+            color: #010864;
+        }
 
-    .glow-on-hover:after {
-      z-index: -1;
-      content: "";
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: #111;
-      left: 0;
-      top: 0;
-      border-radius: 10px;
-    }
-  </style>
+        .glow-on-hover:active:after {
+            background: transparent;
+        }
+
+        .glow-on-hover:hover:before {
+            opacity: 1;
+        }
+
+        .glow-on-hover:after {
+            z-index: -1;
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #010864;
+            left: 0;
+            top: 0;
+            border-radius: 10px;
+        }
+
+        .difficulty-select {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            font-size: 16px;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 100;
+        }
+    </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>3D Tower-Builder</h1>
-    <div class="button-container">
-      <button class="glow-on-hover"
-        onclick="window.location.href='https://my-own-tower-builder.glitch.me/Level1.html';">
-        Easy
-      </button>
-      <button class="glow-on-hover"
-        onclick="window.location.href='https://my-own-tower-builder.glitch.me/Level2.html';">
-        Middle
-      </button>
-      <button class="glow-on-hover"
-        onclick="window.location.href='https://my-own-tower-builder.glitch.me/Level3.html';">
-        Hard
-      </button>
-      <button class="glow-on-hover"
-        onclick="window.location.href='https://my-own-tower-builder.glitch.me/Level4.html';">
-        Extreme
-      </button>
-      <button class="glow-on-hover"
-        onclick="window.location.href='https://my-own-tower-builder.glitch.me/Level5.html';">
-        Impossible
-      </button>
-    </div>
-  </div>
+    <div id="score">Score: 1</div>
+    <select id="levelSelect" class="difficulty-select">
+        <option value="1">Level 1</option>
+        <option value="2">Level 2</option>
+        <option value="3">Level 3</option>
+        <option value="4">Level 4</option>
+        <option value="5">Level 5</option>
+    </select>
+    <div id="popup">Game over! Your score: 0</div>
+    <button id="button" class="glow-on-hover">Place Block</button>
+    <button id="Neustart" class="glow-on-hover">Restart</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer;
+        let blocks = [];
+        let currentBlock;
+        let direction = 1;
+        let score = 0; // Initial Score to 0
+        const blockHeight = 0.5;
+        let blockSpeed = 0.05;
+        let movementAxis = "x";
+        let isMoving = false;
+        let initialCameraY = 5;
+        let cameraTargetY = initialCameraY;
+        const cameraElevationAmount = blockHeight;
+        let smoothCameraMovement = false;
+        let hueValue = 0;
+        let topBlock;
+        let blockCount = 0; // Track the number of blocks
+
+        const levelConfigs = {
+            1: {
+                speed: 0.05,
+                speedIncrease: 0,
+                axisChange: false,
+                randomStart: false,
+                randomSpeed: false
+            },
+            2: {
+                speed: 0.07,
+                speedIncrease: 0.002,
+                axisChange: true,
+                randomStart: false,
+                randomSpeed: true,
+                minSpeed: 0.03,
+                maxSpeed: 0.08
+            },
+            3: {
+                speed: 0.1,
+                speedIncrease: 0.004,
+                axisChange: true,
+                randomStart: true,
+                randomSpeed: true,
+                minSpeed: 0.05,
+                maxSpeed: 0.09
+            },
+            4: {
+                speed: 0.15,
+                speedIncrease: 0.006,
+                axisChange: true,
+                randomStart: true,
+                randomSpeed: true,
+                minSpeed: 0.07,
+                maxSpeed: 0.1
+            },
+            5: {
+                speed: 0.2,
+                speedIncrease: 0.008,
+                axisChange: true,
+                randomStart: true,
+                randomSpeed: true,
+                minSpeed: 0.09,
+                maxSpeed: 0.15
+            }
+        };
+
+        document.getElementById('levelSelect').addEventListener('change', (e) => {
+            const level = parseInt(e.target.value);
+            const config = levelConfigs[level];
+
+            // Update game parameters
+            blockSpeed = config.speed;
+            speedIncrease = config.speedIncrease;
+
+            // Reset game with new settings
+            resetGame();
+        });
+
+        function onWindowResize() {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        }
+
+        document.getElementById("button").onclick = function () {
+            placeBlock();
+        };
+
+        function initialize() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(
+                75,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                100
+            );
+            camera.position.set(4, initialCameraY, 8);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+
+            const groundGeometry = new THREE.BoxGeometry(10, 0.1, 10);
+            const groundMaterial = new THREE.MeshLambertMaterial({
+                color: 0xaaaaaa,
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.position.y = -0.1;
+            scene.add(ground);
+
+            createInitialBlock();
+
+            // Initialpunktestand auf 1 setzen
+            score = 1; // Set initial score to 1
+            updateScore();
+
+            window.addEventListener("click", handleClick);
+            window.addEventListener("touchstart", handleTouchEvent, {
+                passive: true,
+            });
+            window.addEventListener("resize", onWindowResize);
+
+            createBlock();
+
+            animate();
+        }
+
+        function handleClick(event) {
+            if (event.target === document.getElementById("Neustart")) {
+                return;
+            }
+            if (event.target === document.getElementById("button")) {
+                return;
+            }
+            if (event.target === document.getElementById("levelSelect")) {
+                return;
+            }
+            placeBlock();
+        }
+
+        function handleTouchEvent(event) {
+            if (event.target === document.getElementById("Neustart")) {
+                return;
+            }
+            if (event.target === document.getElementById("button")) {
+                return;
+            }
+            if (event.target === document.getElementById("levelSelect")) {
+                return;
+            }
+            placeBlock();
+        }
+
+        function createInitialBlock() {
+            const size = 3;
+            const geometry = new THREE.BoxGeometry(size, blockHeight, size);
+            const material = new THREE.MeshLambertMaterial({
+                color: getNextColor(),
+            });
+            const block = new THREE.Mesh(geometry, material);
+
+            block.position.set(0, 0, 0);
+
+            scene.add(block);
+            blocks.push(block);
+            currentBlock = block;
+            topBlock = block;
+
+            isMoving = false;
+        }
+
+        function createBlock() {
+            const level = parseInt(document.getElementById('levelSelect').value);
+            const config = levelConfigs[level];
+
+            const lastBlock = blocks[blocks.length - 1];
+            const sizeX = lastBlock.geometry.parameters.width * lastBlock.scale.x;
+            const sizeZ = lastBlock.geometry.parameters.depth * lastBlock.scale.z;
+
+            const geometry = new THREE.BoxGeometry(sizeX, blockHeight, sizeZ);
+            const material = new THREE.MeshLambertMaterial({
+                color: getNextColor(),
+            });
+            const block = new THREE.Mesh(geometry, material);
+
+            // Determine movement axis based on level config
+            if (config.axisChange) {
+                // Randomly choose axis for higher levels
+                const axes = ["x", "z"];
+                movementAxis = axes[Math.floor(Math.random() * axes.length)];
+            }
+
+            // Set initial position based on movement axis
+            if (config.randomStart) {
+                // Random start position for higher levels
+                block.position.set(
+                    movementAxis === "x" ? Math.random() * 10 - 5 : lastBlock.position.x,
+                    lastBlock.position.y + blockHeight,
+                    movementAxis === "z" ? Math.random() * 10 - 5 : lastBlock.position.z
+                );
+            } else {
+                // Fixed start position for lower levels
+                block.position.set(
+                    movementAxis === "x" ? -5 : lastBlock.position.x,
+                    lastBlock.position.y + blockHeight,
+                    movementAxis === "z" ? -5 : lastBlock.position.z
+                );
+            }
+
+            if (config.randomSpeed) {
+                blockSpeed = Math.random() * (config.maxSpeed - config.minSpeed) + config.minSpeed;
+            } else {
+                blockSpeed = config.speed + (blockCount * config.speedIncrease);
+            }
+
+            scene.add(block);
+            blocks.push(block);
+            currentBlock = block;
+            topBlock = block;
+
+            blockCount++;
+
+            if (blockCount >= 5) {
+                cameraTargetY = initialCameraY + (blockCount - 5) * cameraElevationAmount;
+                smoothCameraMovement = true;
+            }
+
+            // Update block speed based on level config
+            blockSpeed = config.speed + (blockCount * config.speedIncrease);
+
+            isMoving = true;
+            direction = 1;
+        }
+
+        function getNextColor() {
+            const colorVariationStep = 0.02;
+            hueValue += colorVariationStep;
+            if (hueValue > 1) hueValue = hueValue - 1;
+
+            const newColor = new THREE.Color();
+            newColor.setHSL(hueValue, 0.8, 0.6);
+
+            return newColor;
+        }
+
+        function placeBlock() {
+            if (!isMoving) return;
+
+            const lastBlock = blocks[blocks.length - 2];
+            const currentBlockPos = currentBlock.position[movementAxis];
+            const lastBlockPos = lastBlock.position[movementAxis];
+
+            const lastBlockSize =
+                lastBlock.geometry.parameters[
+                movementAxis === "x" ? "width" : "depth"
+                ] * lastBlock.scale[movementAxis];
+            const currentBlockSize =
+                currentBlock.geometry.parameters[
+                movementAxis === "x" ? "width" : "depth"
+                ] * currentBlock.scale[movementAxis];
+
+            const lastBlockStart = lastBlockPos - lastBlockSize / 2;
+            const lastBlockEnd = lastBlockPos + lastBlockSize / 2;
+            const currentBlockStart = currentBlockPos - currentBlockSize / 2;
+            const currentBlockEnd = currentBlockPos + currentBlockSize / 2;
+
+            const overlapStart = Math.max(lastBlockStart, currentBlockStart);
+            const overlapEnd = Math.min(lastBlockEnd, currentBlockEnd);
+            const overlap = overlapEnd - overlapStart;
+
+            if (overlap > 0) {
+                const newSize = overlap;
+                const newBlockPosition = (overlapStart + overlapEnd) / 2;
+
+                // Resize the current block along the movement axis
+                currentBlock.scale[movementAxis] = newSize / lastBlockSize;
+                currentBlock.position[movementAxis] = newBlockPosition;
+
+                // Increase the speed for the next block
+                blockSpeed += 0.002; // Increase the speed slightly
+
+                // Create a new block for the remaining part
+                createBlock();
+                updateScore(); // Update score after successful placement
+            } else {
+                endGame();
+            }
+        }
+
+        function showEntireTower() {
+            const box = new THREE.Box3().setFromObject(scene);
+            const size = box.getSize(new THREE.Vector3());
+
+            camera.position.set(size.x * 1.5, size.y * 1.3, size.z * 1.5);
+            camera.lookAt(box.getCenter(new THREE.Vector3()));
+
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        }
+
+        function endGame() {
+            showEntireTower();
+            document.getElementById("popup").style.display = "block";
+            document.getElementById(
+                "popup"
+            ).textContent = `Spiel vorbei! Deine Punktzahl: ${score}`;
+            document.getElementById("Neustart").style.display = "block";
+            if (topBlock) {
+                topBlock.visible = !topBlock.visible;
+            }
+            window.removeEventListener("click", handleClick);
+            window.removeEventListener("touchstart", handleTouchEvent);
+            isMoving = false;
+        }
+
+        document.getElementById("Neustart").onclick = function () {
+            resetGame();
+        };
+
+        function resetGame() {
+            // Alle Blöcke entfernen
+            while (blocks.length > 0) {
+                const block = blocks.pop();
+                scene.remove(block);
+                block.geometry.dispose();
+                block.material.dispose();
+            }
+
+            // Spiel- und Kamerastatus zurücksetzen
+            score = 1; // Reset Score to 1 after reset
+            document.getElementById("score").textContent = `Punktestand: ${score}`;
+
+            // Kamera zurücksetzen
+            camera.position.set(4, initialCameraY, 8);
+            camera.lookAt(0, 0, 0);
+            cameraTargetY = initialCameraY; // Kamera-Zielhöhe zurücksetzen
+            smoothCameraMovement = false; // Smooth Camera Movement auf false setzen
+
+            // Bewegungs- und Blockparameter zurücksetzen
+            movementAxis = "x"; // Reset der Bewegungsachse
+            blockSpeed = 0.05;
+            isMoving = false;
+            blockCount = 0; // Reset block count
+
+            // Initialen Block erstellen
+            createInitialBlock();
+
+            // Ersten Block erstellen
+            createBlock();
+
+            // Popup und Neustart-Button verstecken
+            document.getElementById("popup").style.display = "none";
+            document.getElementById("Neustart").style.display = "none";
+
+            // Event-Listener neu hinzufügen
+            window.addEventListener("click", handleClick);
+            window.addEventListener("touchstart", handleTouchEvent, {
+                passive: true,
+            });
+        }
+
+        function updateScore() {
+            // Der Score sollte auf 1 gesetzt werden, wenn nur der Initialblock vorhanden ist
+            if (blocks.length > 1) {
+                score = blocks.length - 1; // Score basiert auf der Anzahl der Blöcke minus 1 für den Initialblock
+            } else {
+                score = 1; // Setze den Score auf 1, wenn nur der Initialblock vorhanden ist
+            }
+            document.getElementById("score").textContent = `Punktestand: ${score}`;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (isMoving) {
+                currentBlock.position[movementAxis] += blockSpeed * direction;
+
+                if (Math.abs(currentBlock.position[movementAxis]) > 5) {
+                    direction *= -1;
+                }
+            }
+
+            if (smoothCameraMovement) {
+                camera.position.y += (cameraTargetY - camera.position.y) * 0.1;
+                if (Math.abs(camera.position.y - cameraTargetY) < 0.05) {
+                    smoothCameraMovement = false;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        initialize();
+    </script>
 </body>
 
 </html>

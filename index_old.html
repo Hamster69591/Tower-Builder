@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Tower-Builder</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #333;
+    }
+
+    .container {
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+    }
+
+    .button-container {
+      margin-top: 40px;
+    }
+
+    .glow-on-hover {
+      margin: 20px;
+      font-size: 1.5em;
+      width: 200px;
+      height: 50px;
+      border: none;
+      outline: none;
+      color: #fff;
+      background: #111;
+      cursor: pointer;
+      position: relative;
+      z-index: 0;
+      border-radius: 10px;
+    }
+
+    .glow-on-hover:before {
+      content: "";
+      background: linear-gradient(45deg,
+          #ff0000,
+          #ff7300,
+          #fffb00,
+          #48ff00,
+          #00ffd5,
+          #002bff,
+          #7a00ff,
+          #ff00c8,
+          #ff0000);
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      background-size: 400%;
+      z-index: -1;
+      filter: blur(5px);
+      width: calc(100% + 4px);
+      height: calc(100% + 4px);
+      animation: glowing 20s linear infinite;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      border-radius: 10px;
+    }
+
+    .glow-on-hover:active {
+      color: #000;
+    }
+
+    .glow-on-hover:active:after {
+      background: transparent;
+    }
+
+    .glow-on-hover:hover:before {
+      opacity: 1;
+    }
+
+    .glow-on-hover:after {
+      z-index: -1;
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #111;
+      left: 0;
+      top: 0;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>3D Tower-Builder</h1>
+    <div class="button-container">
+      <button class="glow-on-hover"
+        onclick="window.location.href='https://my-own-tower-builder.glitch.me/Level1.html';">
+        Easy
+      </button>
+      <button class="glow-on-hover"
+        onclick="window.location.href='https://my-own-tower-builder.glitch.me/Level2.html';">
+        Middle
+      </button>
+      <button class="glow-on-hover"
+        onclick="window.location.href='https://my-own-tower-builder.glitch.me/Level3.html';">
+        Hard
+      </button>
+      <button class="glow-on-hover"
+        onclick="window.location.href='https://my-own-tower-builder.glitch.me/Level4.html';">
+        Extreme
+      </button>
+      <button class="glow-on-hover"
+        onclick="window.location.href='https://my-own-tower-builder.glitch.me/Level5.html';">
+        Impossible
+      </button>
+    </div>
+  </div>
+</body>
+
+</html>
